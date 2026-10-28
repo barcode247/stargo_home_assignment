@@ -131,13 +131,18 @@ def compute_kpi_pack(window: ReportingWindow, data: KpiInputs, *, computed_at: d
             qls.append((_record(person, q, refs, f"first touch {source}{dup}"), source))
 
     # Inbound received this week but accepted after it: counts in the acceptance week.
+    accepted_later: dict[str, list[str]] = {}
+    for d in data.decisions:
+        person = data.index.person_for_key(d.contact_key)
+        if person and d.decision == "accepted" and d.decided_at >= window.end:
+            accepted_later.setdefault(person.person_id, []).append(d.id)
     for person_id, q in sorted(data.qualifications.items()):
         first_at = data.first_inbound_at.get(person_id)
-        if (q.status == "QL" and first_at and window.contains(first_at)
+        if (person_id in accepted_later and first_at and window.contains(first_at)
                 and person_id not in by_person):
             not_counted.append(KpiRecord(
                 person_id=person_id, name=q.name, company=q.company,
-                refs=[r for r in (q.first_inbound_id, *q.decision_ids) if r],
+                refs=[r for r in (q.first_inbound_id, *accepted_later[person_id]) if r],
                 note="inbound this week, accepted after the week ends; counts in that week"))
 
     event_lines: dict[str, list[KpiRecord]] = {t: [] for t in

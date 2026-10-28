@@ -1,4 +1,5 @@
 import pytest
+from conftest import IN_WEEK_LEAD
 from fastapi.testclient import TestClient
 
 from stargo.api import create_app
@@ -61,7 +62,8 @@ def test_malformed_request_errors_are_readable_and_do_not_echo_input(client):
 def test_decision_with_past_time_replays_week(client):
     before = client.get("/api/kpi", params={"week": "2026-10-04"}).json()["pack"]
     assert before["acquisition"][0]["actual"] == 6
-    r = client.post("/api/leads/HS-1008/decisions",
+    lead = client.post("/api/inbound", json=IN_WEEK_LEAD).json()["person_id"]
+    r = client.post(f"/api/leads/{lead}/decisions",
                     json={"decision": "accepted", "decided_by": "Leo",
                           "decided_at": "2026-10-07T10:00"})
     assert r.status_code == 200

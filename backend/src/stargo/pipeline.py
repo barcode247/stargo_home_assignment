@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from stargo.agents.reply_drafter import DraftRecord, ReplyDrafter, check_eligible
-from stargo.agents.rules_extractor import RulesExtractor, UnsupportedLanguage
+from stargo.agents.rules_extractor import LowConfidence, RulesExtractor, UnsupportedLanguage
 from stargo.agents.schemas import ExtractionResult, InvalidExtraction, validate_extraction
 from stargo.config import REPORT_TZ
 from stargo.domain.accounts import account_for, build_accounts
@@ -235,6 +235,8 @@ class Pipeline:
             extraction = validate_extraction(raw, message.body)
         except UnsupportedLanguage as exc:
             error = f"rules extractor cannot read language '{exc}'"
+        except LowConfidence as exc:
+            error = f"rules extractor is not confident reading '{exc}' text"
         except InvalidExtraction as exc:
             error = f"invalid extractor output: {exc}"
         except TimeoutError:
@@ -290,7 +292,17 @@ class Pipeline:
     def kpi_pack(self, week_start: date) -> KpiPack:
         window = ReportingWindow(week_start)
         snapshot = self._snapshot()
-        quals = {q.person_id: q for q in self.store.qualifications()}
+        # Replay the week: judge each person on what was on record when the week ended, so a
+        # later decline or unsubscribe does not rewrite a past week's numbers.
+        quals = {}
+        for pid, ctx in snapshot.contexts.items():
+            as_of = LeadContext(
+                person=ctx.person,
+                messages=[m for m in ctx.messages if m.received_at < window.end],
+                results=ctx.results, account=ctx.account,
+                decisions=[d for d in ctx.decisions if d.decided_at < window.end])
+            if as_of.messages or as_of.decisions:
+                quals[pid] = qualify(as_of, now=window.end)
         first_inbound = {
             pid: snapshot.messages[ctx.person.message_ids[0]].received_at
             for pid, ctx in snapshot.contexts.items() if ctx.person.message_ids

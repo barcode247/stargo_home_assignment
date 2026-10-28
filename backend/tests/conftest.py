@@ -43,6 +43,21 @@ def quals(seeded):
     return {q.person_id: q for q in seeded.store.qualifications()}
 
 
+IN_WEEK_LEAD = {
+    "from_name": "Lotte Bakker", "from_email": "lotte@deltaforwarding.nl",
+    "channel": "form_fill", "source": "paid", "received_at": "2026-10-06T10:00:00+03:00",
+    "body": "We're a 120-person freight forwarder in Rotterdam. I am the head of pricing. "
+            "We build every spot quote by hand from email rate requests. Could we see a demo?",
+}
+
+
+def add_in_week_candidate(pipeline) -> str:
+    """A QL candidate whose inbound falls inside the 4-8 Oct week; returns its person id."""
+    result = pipeline.submit_inbound(dict(IN_WEEK_LEAD))
+    assert pipeline.qualification(result.person_id).status == "QL candidate"
+    return result.person_id
+
+
 def inbound(**overrides):
     raw = {
         "from_name": "Test Person",

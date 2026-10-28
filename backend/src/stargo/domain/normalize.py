@@ -108,6 +108,10 @@ COUNTRY_ALIASES = {
     "new zealand": "NZ",
     "fr": "FR", "france": "FR", "es": "ES", "spain": "ES", "it": "IT", "italy": "IT",
     "pl": "PL", "poland": "PL", "ca": "CA", "canada": "CA",
+    "br": "BR", "brazil": "BR", "brasil": "BR", "mx": "MX", "mexico": "MX",
+    "ar": "AR", "argentina": "AR", "za": "ZA", "south africa": "ZA", "ae": "AE", "uae": "AE",
+    "united arab emirates": "AE", "tr": "TR", "turkey": "TR", "eg": "EG", "egypt": "EG",
+    "pt": "PT", "portugal": "PT", "ie": "IE", "ireland": "IE", "cz": "CZ", "ro": "RO",
 }
 
 REGION_BY_COUNTRY = {
@@ -134,7 +138,8 @@ def normalize_country(raw: str | None) -> str | None:
 
 
 def region_for_country(country: str | None) -> str | None:
-    return REGION_BY_COUNTRY.get(country) if country else None
+    """A known country outside every routing region is "Other" (known, not unknown)."""
+    return REGION_BY_COUNTRY.get(country, "Other") if country else None
 
 
 VERTICAL_ALIASES = {

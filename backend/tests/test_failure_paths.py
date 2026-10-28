@@ -122,9 +122,17 @@ def test_rules_extractor_problem_category(seeded, body, category):
 @pytest.mark.parametrize("body, intent", [
     ("שלום, אנחנו מתמחרים הצעות מחיר ידנית. אשמח לשיחה.", "demo"),
     ("Bedankt, maar we hebben geen interesse.", "not_interested"),
-    ("Wir hätten gerne eine Demo, bitte.", "demo"),
+    ("Wir erfassen Frachtbriefe manuell. Wir hätten gerne eine Demo, bitte.", "demo"),
 ])
 def test_rules_extractor_reads_supported_languages(seeded, body, intent):
     result = seeded.submit_inbound(inbound(body=body))
     extraction = seeded.store.extractions()[result.message_id].extraction
     assert extraction.intent == intent
+
+
+def test_non_english_interest_without_a_readable_problem_defers(seeded):
+    # The German lexicon is small, so "no problem found" is not trusted as a negative.
+    result = seeded.submit_inbound(inbound(body="Wir hätten gerne eine Demo, bitte."))
+    q = seeded.qualification(result.person_id)
+    assert q.status == "needs review"
+    assert any("not confident" in f for f in q.review_flags)

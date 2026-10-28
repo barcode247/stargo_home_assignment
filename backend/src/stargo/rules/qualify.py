@@ -188,13 +188,18 @@ def qualify(ctx: LeadContext, *, now: datetime) -> Qualification:
                                       else "no inbound message on record"])
     latest_intent = substantive[-1][1].intent if substantive else None
     interested = [(m, e) for m, e in substantive if e.intent in INTEREST_INTENTS]
-    if interested and latest_intent != "not_interested":
+    if interested:
+        # Interest, once expressed, stays a fact: a later decline is shown, not erased, so
+        # a past week's QL does not disappear when the lead goes cold.
         m, e = interested[0]
         quote = next((q for q in e.evidence if q not in (e.data_problem.summary
                                                          if e.data_problem else "")),
                      e.evidence[-1] if e.evidence else "")
+        evidence = [f"{e.intent} [{m.id}]: \"{quote}\""]
+        if latest_intent == "not_interested":
+            evidence.append(f"latest message [{substantive[-1][0].id}] declines")
         c4 = ConditionCheck(key="expressed_interest", label="Expressed interest", met=True,
-                            verified=True, evidence=[f"{e.intent} [{m.id}]: \"{quote}\""])
+                            verified=True, evidence=evidence)
     else:
         c4 = ConditionCheck(key="expressed_interest", label="Expressed interest",
                             met=False if substantive else None, verified=True,
@@ -225,7 +230,8 @@ def qualify(ctx: LeadContext, *, now: datetime) -> Qualification:
         if commercial:
             exclusion = commercial
         elif (ctx.account and ctx.account.is_competitor) or (
-                person.crm and (person.crm.lead_status or "").lower() == "competitor"):
+                person.crm and (person.crm.lead_status or "").lower() == "competitor") or (
+                facts["vertical"].value == "software-vendor"):
             exclusion = "competitor_or_vendor"
         elif is_investor:
             exclusion = "investor"

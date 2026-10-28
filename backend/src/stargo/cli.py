@@ -1,7 +1,8 @@
 """Command line entry points.
 
     python -m stargo.cli leads                 # seed on first run, print the lead queue
-    python -m stargo.cli kpi --week 2026-10-04 --out ../KPI_PACK.md
+    python -m stargo.cli kpi --week 2026-10-04 --note ../docs/cro_note.md --out ../KPI_PACK.md
+    python -m stargo.cli eval                  # score against the labelled message sets
     python -m stargo.cli reset                 # delete the local database
 """
 
@@ -11,6 +12,7 @@ from datetime import date
 from pathlib import Path
 
 from stargo.config import DATA_DIR, DB_PATH, REPORT_TZ
+from stargo.evaluation import EVAL_PATH, run_eval
 from stargo.kpi.render import render_markdown
 from stargo.pipeline import Pipeline
 from stargo.storage.db import Store
@@ -38,11 +40,20 @@ def cmd_leads(_: argparse.Namespace) -> None:
 def cmd_kpi(args: argparse.Namespace) -> None:
     pack = _pipeline().kpi_pack(date.fromisoformat(args.week))
     text = render_markdown(pack)
+    if args.note:
+        note = Path(args.note).read_text(encoding="utf-8").strip()
+        text = f"{text.rstrip()}\n\n## Note to the CRO\n\n{note}\n"
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
         print(f"wrote {args.out}")
     else:
         print(text)
+
+
+def cmd_eval(args: argparse.Namespace) -> None:
+    logging.disable(logging.INFO)
+    for name in args.sets:
+        print(run_eval(path=EVAL_PATH.parent / name).render(), "\n")
 
 
 def cmd_reset(_: argparse.Namespace) -> None:
@@ -59,7 +70,12 @@ def main() -> None:
     kpi.add_argument("--week", default="2026-10-04", help="Sunday the week starts, "
                      f"{REPORT_TZ}")
     kpi.add_argument("--out")
+    kpi.add_argument("--note", help="markdown file appended as the note to the CRO")
     kpi.set_defaults(fn=cmd_kpi)
+    ev = sub.add_parser("eval", help="score the pipeline on the labelled message sets")
+    ev.add_argument("sets", nargs="*",
+                    default=["labelled_messages.json", "holdout_messages.json"])
+    ev.set_defaults(fn=cmd_eval)
     sub.add_parser("reset").set_defaults(fn=cmd_reset)
     args = parser.parse_args()
     args.fn(args)
