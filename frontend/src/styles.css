@@ -45,6 +45,7 @@ code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: 0.85em;
 .mode { margin-left: auto; font-size: 0.8rem; padding: 3px 8px; border-radius: 99px;
         background: var(--good-bg); color: var(--good); }
 .mode.fallback { background: var(--warn-bg); color: var(--warn); }
+.mode.down { background: var(--bad-bg); color: var(--bad); }
 main { flex: 1; padding: 16px; max-width: 1100px; width: 100%; margin: 0 auto; }
 footer { padding: 12px 16px; font-size: 0.8rem; color: var(--muted); text-align: center; }
 

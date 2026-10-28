@@ -28,9 +28,10 @@ const NAV = [
 export default function App() {
   const route = useHashRoute();
   const [mode, setMode] = useState<string | null>(null);
+  // Re-check on every navigation so the badge never shows a stale mode after the API stops.
   useEffect(() => {
     api.health().then((h) => setMode(h.mode)).catch(() => setMode("API unreachable"));
-  }, []);
+  }, [route.join("/")]);
 
   const section = route[0] ?? "leads";
   let view;
@@ -50,7 +51,10 @@ export default function App() {
                className={section === item.match ? "active" : undefined}>{item.label}</a>
           ))}
         </nav>
-        {mode && <div className={`mode ${mode.startsWith("rules") ? "fallback" : ""}`}>{mode}</div>}
+        {mode && (
+          <div className={`mode ${mode === "API unreachable" ? "down"
+                                  : mode.startsWith("rules") ? "fallback" : ""}`}>{mode}</div>
+        )}
       </header>
       <main>{view}</main>
       <footer>Nothing is sent from this app. Drafts need human approval and are sent by hand.</footer>

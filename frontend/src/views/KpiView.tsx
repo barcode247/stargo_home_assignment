@@ -71,6 +71,7 @@ export default function KpiView() {
         </label>
       </div>
       <ErrorBox error={error} />
+      {!pack && !error && <p className="muted">Loading…</p>}
       {pack && (
         <>
           <p className="muted small">

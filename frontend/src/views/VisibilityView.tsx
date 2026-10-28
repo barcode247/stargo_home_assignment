@@ -92,7 +92,15 @@ export default function VisibilityView() {
     }
   };
 
-  if (!snapshot) return <><h1>AI visibility</h1><ErrorBox error={error} /></>;
+  if (!snapshot) {
+    return (
+      <>
+        <h1>AI visibility</h1>
+        <ErrorBox error={error} />
+        {!error && <p className="muted">Loading…</p>}
+      </>
+    );
+  }
   const top = snapshot.gaps[0];
   const shown = open ?? (briefs[top.prompt_id] ? top.prompt_id : null);
 

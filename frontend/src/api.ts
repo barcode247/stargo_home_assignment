@@ -145,11 +145,21 @@ export class ApiError extends Error {
   }
 }
 
+export const API_DOWN =
+  "Cannot reach the API server. Start it from backend/ with: " +
+  "uv run uvicorn stargo.api:build_default_app --factory --port 8000";
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
-    ...init,
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      ...init,
+    });
+  } catch {
+    // fetch only throws on network failure: the server is not running or not reachable.
+    throw new ApiError([API_DOWN], 0);
+  }
   const body = await response.json().catch(() => null);
   if (!response.ok) {
     const detail = body?.detail;
