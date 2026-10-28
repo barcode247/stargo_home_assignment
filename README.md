@@ -28,7 +28,8 @@ Other commands (from `backend/`):
 ```bash
 uv run pytest -q                                           # offline; models are faked
 uv run ruff check src tests
-uv run python -m stargo.cli kpi --week 2026-10-04 --out ../KPI_PACK.md
+uv run python -m stargo.cli eval                           # score on the labelled messages
+uv run python -m stargo.cli kpi --week 2026-10-04 --note ../docs/cro_note.md --out ../KPI_PACK.md
 uv run python -m stargo.cli reset                          # wipe the local database
 ```
 
@@ -112,8 +113,13 @@ queue and never changes the status.
 ## KPI counting
 
 - Week = Sun 00:00 to Fri 00:00 (exclusive) Asia/Jerusalem; every timestamp is converted first.
+- The week is replayed: each person is re-qualified using only the messages and decisions on
+  record before the week ended. A decline or unsubscribe next week changes today's status but
+  not last week's count, and an acceptance dated before the person's first message cannot count.
 - A QL counts in the week of its first acceptance, once per person, if the latest decision as of
   the week's end is still an acceptance and conditions 1-4 hold with no exclusion or review flag.
+- Expressed interest (condition 4) stays met once expressed; a later decline is shown on the
+  lead, not used to erase the earlier interest.
 - Meetings and opportunities count by event date; customers go to the expansion lines,
   pre-existing deals are listed as not counted.
 - Source = the person's earliest inbound. An unreceived feed is `unknown`, not 0.
@@ -131,6 +137,9 @@ queue and never changes the status.
   and shows as `needs review`; his meetings and opportunity still count by event date.
 - Routing table "Singapore and APAC → Mei" applies to APAC owners, but only Singapore is an
   ICP region, so other APAC leads fail condition 1.
+- A known country outside every routing region (Brazil) fails condition 1 and routes to
+  Triage. An unknown country stays unknown; the app never infers a country from a domain.
+- A stated software vendor is excluded as a vendor even when not in the CRM.
 
 ## AI visibility (part 4)
 
@@ -150,13 +159,40 @@ The brief validator checks the BC-7 contract (40-60 word answer, 3-5 sections, 3
 schema.org type) and blocks claims with no or unknown source ids, figures not in the cited
 source, competitor names outside the title and FAQ questions, or hype words.
 
+## Eval set (bonus)
+
+`data/eval/` holds hand-labelled messages that are not in the seed data: non-English (German,
+Dutch, Hebrew, French, Japanese), unusual auto-replies and unsubscribes, vendors, investors,
+students, injection attempts, small and out-of-region companies, junior roles, existing
+customers and open deals. Each case runs as a new inbound on a fresh seeded database and is
+graded as correct, a safe deferral (`needs review` where the label is something else), or an
+unsafe error (any other wrong status). `uv run python -m stargo.cli eval` prints the report,
+and `tests/test_eval.py` fails on any unsafe error.
+
+How the numbers moved, rules-only mode:
+
+| Set | Run | Status correct | Safe deferrals | Unsafe |
+|---|---|---:|---:|---:|
+| `labelled_messages.json` (25) | before fixes | 15 | 6 | 4 |
+| `labelled_messages.json` (25) | after fixes | 25 | 0 | 0 |
+| `holdout_messages.json` (12) | first run, written after tuning | 6 | 3 | 3 |
+| `holdout_messages.json` (12) | after fixing 2 label errors and 5 rule gaps | 12 | 0 | 0 |
+
+The held-out first run is the honest estimate for unseen text: about half right, with a
+quarter deferred to a human, in rules-only mode. Its unsafe misses were an unsubscribe phrased
+"please don't contact me again" (left as a QL), a student who never said "student", and a
+label of mine that was wrong. Both sets now pass, but they are tuned against, so the next
+unseen message will find new gaps. The design limits the damage: outside English, a message
+where the keywords find no problem or no intent goes to `needs review` instead of `nurture`.
+
 ## What I cut, and what I'd do next
 
-- **Eval set.** I did not build the labelled eval set (bonus) or the HubSpot dry-run sync.
+- **HubSpot dry-run sync** (bonus): not built.
 - **LLM mode on real models.** Every model path is tested against fakes and a local fake
-  HTTP server; it has not been run against a live free-tier key in this repo.
+  HTTP server; it has not been run against a live free-tier key in this repo. Next step: run
+  the eval sets through the LLM extractor and compare with rules-only.
 - **Rules extractor depth.** It is a fallback, not a classifier: a passing "thanks for the
-  quote" would read as a quoting problem. With more time: an eval set over pasted edge cases
-  to measure it against the LLM extractor.
+  quote" would read as a quoting problem, and its city list decides region for stated
+  locations.
 - **Auth and multi-user locking.** Out of scope per the brief; the API serialises requests
   with one lock.
