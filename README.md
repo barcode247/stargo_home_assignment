@@ -23,6 +23,12 @@ reply drafts and content briefs come from fixed templates. To use a free-tier mo
 `.env.example` to `.env` and set `LLM_PROVIDER` (`groq`, `gemini` or `ollama`) and
 `LLM_API_KEY`. The only network calls the backend makes are to that one endpoint.
 
+Tested live with Gemini (`gemini-flash-lite-latest`, the default for `gemini`). Two things to
+know: set `LLM_MIN_INTERVAL_SECONDS=6.5` to stay under the free tier's limit of about 10
+requests a minute, and the first start on an empty database sends all 21 seed messages through
+the model, so it takes about 2½ minutes before the server answers. `gemini-2.5-flash` is
+no longer offered to new keys, which is why the default is the `-latest` alias.
+
 Other commands (from `backend/`):
 
 ```bash
@@ -185,12 +191,29 @@ label of mine that was wrong. Both sets now pass, but they are tuned against, so
 unseen message will find new gaps. The design limits the damage: outside English, a message
 where the keywords find no problem or no intent goes to `needs review` instead of `nurture`.
 
+LLM mode, Gemini `gemini-flash-lite-latest` (`uv run python -m stargo.cli eval --llm`):
+
+| Set | Run | Status correct | Safe deferrals | Unsafe |
+|---|---|---:|---:|---:|
+| `labelled_messages.json` (25) | first run, prompt untouched | 24 | 0 | 1 |
+| `holdout_messages.json` (12) | first run, prompt untouched | 11 | 0 | 1 |
+| both | after defining three labels in the prompt | 37 | 0 | 0 |
+
+Untuned, the model was far ahead of the rules on unseen text (35/37 against 21/37 for the
+rules' first runs). Its two misses were gaps in my prompt, not in the model: it did not know
+that a company selling OCR software counts as a vendor, or that the QL standard groups students
+with job seekers. Live testing also caught a bug before the eval did: the model returned the
+vertical as "Spedition" (German), which no ICP check recognises, so a German forwarder would
+have been disqualified. The schema now only accepts a closed list of verticals.
+
 ## What I cut, and what I'd do next
 
 - **HubSpot dry-run sync** (bonus): not built.
-- **LLM mode on real models.** Every model path is tested against fakes and a local fake
-  HTTP server; it has not been run against a live free-tier key in this repo. Next step: run
-  the eval sets through the LLM extractor and compare with rules-only.
+- **LLM mode beyond Gemini.** Live-tested with Gemini only (extraction, reply draft and
+  content brief). Groq and Ollama use the same OpenAI-compatible client but were tested only
+  against fakes. The automated tests never call a real model.
+- **Seeding speed in LLM mode.** The first start waits for every seed message to go through
+  the model. With more time: seed in the background and show progress in the UI.
 - **Rules extractor depth.** It is a fallback, not a classifier: a passing "thanks for the
   quote" would read as a quoting problem, and its city list decides region for stated
   locations.

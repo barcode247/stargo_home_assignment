@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import socket
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -18,7 +19,8 @@ log = logging.getLogger("stargo.llm")
 
 PROVIDERS = {
     "groq": ("https://api.groq.com/openai/v1", "llama-3.3-70b-versatile"),
-    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "gemini-2.5-flash"),
+    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai",
+               "gemini-flash-lite-latest"),
     "ollama": ("http://localhost:11434/v1", "llama3.1:8b"),
 }
 
@@ -38,6 +40,7 @@ class LlmSettings:
     model: str
     api_key: str | None
     timeout_s: float
+    min_interval_s: float = 0.0  # pause between calls, for free-tier rate limits
 
     @property
     def label(self) -> str:
@@ -75,6 +78,7 @@ def load_settings(env: dict[str, str] | None = None) -> LlmSettings | None:
         model=env.get("LLM_MODEL") or default_model,
         api_key=key,
         timeout_s=float(env.get("LLM_TIMEOUT_SECONDS") or 20),
+        min_interval_s=float(env.get("LLM_MIN_INTERVAL_SECONDS") or 0),
     )
 
 
@@ -83,6 +87,16 @@ class ChatClient:
 
     def __init__(self, settings: LlmSettings) -> None:
         self.settings = settings
+        self._lock = threading.Lock()
+        self._last_call = 0.0
+
+    def _wait_for_slot(self) -> None:
+        """Space calls at least min_interval_s apart; the wait is not counted as model time."""
+        with self._lock:
+            wait = self._last_call + self.settings.min_interval_s - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            self._last_call = time.monotonic()
 
     def complete_json(self, system: str, user: str) -> str:
         """Return the model's raw text. Callers validate it; nothing here trusts it."""
@@ -100,6 +114,7 @@ class ChatClient:
             f"{self.settings.base_url}/chat/completions",
             data=json.dumps(payload).encode(), headers=headers, method="POST")
 
+        self._wait_for_slot()
         deadline = time.monotonic() + self.settings.timeout_s
         for attempt in range(self.max_retries + 1):
             remaining = deadline - time.monotonic()
@@ -113,7 +128,8 @@ class ChatClient:
                 return self._content(body)
             except urllib.error.HTTPError as exc:
                 log.warning("llm %s http %s", self.settings.label, exc.code)
-                if exc.code == 429 and attempt < self.max_retries:
+                # Rate limited or briefly overloaded: worth a short retry inside the deadline.
+                if exc.code in (429, 500, 502, 503) and attempt < self.max_retries:
                     time.sleep(min(2.0 * (attempt + 1), max(0.0, deadline - time.monotonic())))
                     continue
                 raise LlmError(f"model endpoint returned HTTP {exc.code}") from None

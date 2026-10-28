@@ -14,6 +14,11 @@ ProblemCategory = Literal[
     "rate_quoting", "document_extraction", "invoice_reconciliation", "trade_document_checking",
 ]
 INTEREST_INTENTS = frozenset({"demo", "pricing", "pilot"})
+# A closed list, so a model's free text ("Spedition", "logistics co.") cannot slip past ICP checks.
+Vertical = Literal[
+    "freight-forwarder", "carrier", "3pl", "trucking", "air-cargo", "ground-handling",
+    "customs-broker", "shipper", "trade-finance", "software-vendor", "investor", "other",
+]
 
 
 class Strict(BaseModel):
@@ -22,7 +27,7 @@ class Strict(BaseModel):
 
 class StatedCompanyFacts(Strict):
     company_name: str | None = Field(default=None, max_length=120)
-    vertical: str | None = Field(default=None, max_length=40)
+    vertical: Vertical | None = None
     employees: int | None = Field(default=None, ge=1, le=10_000_000)
     country: str | None = Field(default=None, pattern=r"^[A-Z]{2}$")
 

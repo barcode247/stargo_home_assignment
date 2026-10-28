@@ -143,6 +143,17 @@ def test_client_timeout(fake_server):
         client_for(fake_server, timeout=0.5).complete_json("s", "u")
 
 
+def test_client_spaces_calls_for_rate_limits(fake_server):
+    _Handler.mode = "ok"
+    port = fake_server.server_address[1]
+    client = ChatClient(LlmSettings("test", f"http://127.0.0.1:{port}", "m", None, 5,
+                                    min_interval_s=0.4))
+    started = time.monotonic()
+    client.complete_json("s", "u")
+    client.complete_json("s", "u")
+    assert time.monotonic() - started >= 0.4
+
+
 def test_client_unreachable_host():
     settings = LlmSettings("test", "http://127.0.0.1:9", "m", None, 2)
     with pytest.raises(LlmError):

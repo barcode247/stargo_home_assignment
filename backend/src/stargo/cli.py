@@ -8,12 +8,15 @@
 
 import argparse
 import logging
+import tempfile
 from datetime import date
 from pathlib import Path
 
-from stargo.config import DATA_DIR, DB_PATH, REPORT_TZ
-from stargo.evaluation import EVAL_PATH, run_eval
+from stargo.agents.llm_extractor import LlmExtractor
+from stargo.config import DATA_DIR, DB_PATH, REPO_ROOT, REPORT_TZ
+from stargo.evaluation import EVAL_PATH, build_template, run_eval
 from stargo.kpi.render import render_markdown
+from stargo.llm.client import ChatClient, load_dotenv, load_settings
 from stargo.pipeline import Pipeline
 from stargo.storage.db import Store
 
@@ -52,8 +55,28 @@ def cmd_kpi(args: argparse.Namespace) -> None:
 
 def cmd_eval(args: argparse.Namespace) -> None:
     logging.disable(logging.INFO)
-    for name in args.sets:
-        print(run_eval(path=EVAL_PATH.parent / name).render(), "\n")
+    factory = None
+    if args.llm:
+        load_dotenv(REPO_ROOT / ".env")
+        settings = load_settings()
+        if settings is None:
+            raise SystemExit("--llm needs LLM_PROVIDER and LLM_API_KEY in .env")
+        client = ChatClient(settings)  # one client, so its rate limit spans every call
+
+        def factory() -> LlmExtractor:
+            return LlmExtractor(client)
+
+        print(f"Seeding once with {settings.label}; this makes one call per message.")
+
+    def progress(label: str) -> None:
+        print(f"  running {label}", flush=True)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        template = build_template(Path(tmp), factory)
+        for name in args.sets:
+            report = run_eval(factory, path=EVAL_PATH.parent / name, template=template,
+                              progress=progress if args.llm else None)
+            print(report.render(), "\n")
 
 
 def cmd_reset(_: argparse.Namespace) -> None:
@@ -75,6 +98,7 @@ def main() -> None:
     ev = sub.add_parser("eval", help="score the pipeline on the labelled message sets")
     ev.add_argument("sets", nargs="*",
                     default=["labelled_messages.json", "holdout_messages.json"])
+    ev.add_argument("--llm", action="store_true", help="use the model configured in .env")
     ev.set_defaults(fn=cmd_eval)
     sub.add_parser("reset").set_defaults(fn=cmd_reset)
     args = parser.parse_args()

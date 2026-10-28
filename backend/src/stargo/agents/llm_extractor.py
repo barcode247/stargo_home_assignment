@@ -17,14 +17,20 @@ Return one JSON object with exactly these keys:
 - "language": ISO 639-1 code of the message body, or "unknown"
 - "intent": one of "demo", "pricing", "pilot", "not_interested", "unsubscribe", \
 "auto_reply", "partnership", "investor", "job_seeker", "other". Asking for a call or \
-meeting about the product, or replying positively to one, is "demo".
+meeting about the product, or replying positively to one, is "demo"; general curiosity \
+without an explicit ask ("tell me more", "interesting") is "other". "job_seeker" also \
+covers students and researchers asking for interviews, thesis help or internships.
 - "buyer_role": the sender's role as they state it in the message, in English, or null
 - "data_problem": null, or {"category": one of "rate_quoting", "document_extraction", \
 "invoice_reconciliation", "trade_document_checking", "summary": one English sentence}. \
 Only a concrete pain the sender states; do not infer one.
-- "company_facts": {"company_name": string|null, "vertical": string|null, \
-"employees": integer|null, "country": ISO 3166 alpha-2|null}, only facts the sender \
-states about their own company. Use null for anything not stated. Never guess.
+- "company_facts": {"company_name": string|null, "vertical": one of "freight-forwarder", \
+"carrier", "3pl", "trucking", "air-cargo", "ground-handling", "customs-broker", "shipper", \
+"trade-finance", "software-vendor", "investor", "other", or null, "employees": integer|null, \
+"country": ISO 3166 alpha-2|null}, only facts the sender states about their own company, \
+mapped to these values whatever language they wrote in. A company that sells software, \
+OCR or other technology is "software-vendor". Use null for anything not stated. \
+Never guess. A city counts as a stated country.
 - "evidence": up to 4 short quotes copied character for character from the message \
 body (original language), supporting the intent and the problem.
 

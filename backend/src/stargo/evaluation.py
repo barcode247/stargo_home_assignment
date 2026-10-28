@@ -11,6 +11,7 @@ cannot affect each other. Status outcomes are graded three ways:
 """
 
 import json
+import shutil
 import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -72,17 +73,35 @@ def _grade(expected: str, actual: str | None) -> str:
     return "unsafe"
 
 
-def run_eval(extractor_factory=None, path: Path = EVAL_PATH) -> EvalReport:
+def _pipeline(db: Path, extractor_factory) -> Pipeline:
+    extractor: Extractor | None = extractor_factory() if extractor_factory else None
+    return Pipeline(Store(db), extractor=extractor, clock=lambda: EVAL_NOW)
+
+
+def build_template(directory: Path, extractor_factory=None) -> Path:
+    """Seed once; every case starts from a copy, so a model sees each seed message once."""
+    template = directory / "template.db"
+    pipeline = _pipeline(template, extractor_factory)
+    pipeline.seed_if_empty(DATA_DIR)
+    pipeline.store.close()
+    return template
+
+
+def run_eval(extractor_factory=None, path: Path = EVAL_PATH, template: Path | None = None,
+             progress=None) -> EvalReport:
     cases = json.loads(path.read_text(encoding="utf-8"))["cases"]
     report: EvalReport | None = None
     with tempfile.TemporaryDirectory() as tmp:
+        template = template or build_template(Path(tmp), extractor_factory)
         for i, case in enumerate(cases):
-            store = Store(Path(tmp) / f"case{i}.db")
-            extractor: Extractor | None = extractor_factory() if extractor_factory else None
-            pipeline = Pipeline(store, extractor=extractor, clock=lambda: EVAL_NOW)
-            pipeline.seed_if_empty(DATA_DIR)
+            db = Path(tmp) / f"case{i}.db"
+            shutil.copyfile(template, db)
+            pipeline = _pipeline(db, extractor_factory)
+            store = pipeline.store
             if report is None:
                 report = EvalReport(extractor=pipeline.extractor.name)
+            if progress:
+                progress(f"{case['id']} ({i + 1}/{len(cases)})")
             result = pipeline.submit_inbound(case["input"])
             if not result.accepted:
                 actual = {"rejected": result.reasons}
