@@ -1,0 +1,20 @@
+record_id,first_name,last_name,email,job_title,linkedin_url,company_name,company_domain,country,vertical,employees,lifecycle_stage,lead_status,is_customer,open_deal_id,open_deal_created,owner,last_activity_date
+HS-1001,Anouk,de Vries,anouk.devries@nordhavenfreight.com,Head of Pricing,https://www.linkedin.com/in/anouk-devries-nf,Nordhaven Freight,nordhavenfreight.com,NL,freight-forwarder,850,lead,,false,,,Dana,2026-09-22
+HS-1002,Sanne,Jansen,sanne.jansen@nl.nordhavenfreight.com,Customs Manager,,Nordhaven Freight B.V.,www.NordhavenFreight.com,Netherlands,Freight Forwarder,,lead,,false,,,Dana,2026-08-30
+HS-1003,Erik,Lund,erik.lund@nordhavenfreight.com,CFO,,Nordhaven Freight,nordhavenfreight.com,NL,freight-forwarder,850,researched,,false,,,,2026-09-02
+HS-1004,Pieter,Claes,p.claes@balticacargo.eu,Commercial Director,https://www.linkedin.com/in/pieterclaes-bcl,Baltica Cargo Lines,balticacargo.eu,BE,carrier,2200,lead,,false,,,Dana,2026-09-29
+HS-1005,Wim,Peeters,wim.peeters@balticacargo.eu,Customer Service Team Lead,,Baltica Cargo Lines,balticacargo.eu,BE,carrier,2200,lead,,false,,,Dana,2025-11-14
+HS-1006,Greta,Holm,greta.holm@balticacargo.eu,Marketing Manager,,Baltica Cargo Lines,balticacargo.eu,BE,carrier,2200,lead,,false,,,Dana,2026-09-29
+HS-1007,James,Okafor,james.okafor@meridianhaulage.co.uk,Operations Director,,Meridian Haulage,meridianhaulage.co.uk,UK,trucking,400,lead,,false,,,Leo,2026-09-30
+HS-1008,Marcus,Hale,m.hale@meridianhaulage.co.uk,Pricing Manager,,Meridian Haulage Ltd,meridianhaulage.co.uk,United Kingdom,trucking,400,lead,,false,,,Leo,2026-09-30
+HS-1009,Rachel,Lim,rachel.lim@lionport.com.sg,VP Operations,,Lionport Logistics,lionport.com.sg,SG,3pl,1200,lead,,false,,,Mei,2026-09-25
+HS-1010,Sofia,Marin,sofia.marin@lionport.com.sg,IT Director,,Lionport Logistics,lionport.com.sg,SG,3pl,1200,researched,,false,,,,2026-09-25
+HS-1011,Mark,Fenwick,mark.fenwick@tidewateraircargo.com,Station Manager,,Tidewater Air Cargo,tidewateraircargo.com,US,air-cargo,5000,customer,,true,,,Sam,2026-09-18
+HS-1012,Daniel,Wong,daniel.wong@orbistradefinance.com,Head of Trade Operations,,Orbis Trade Finance,orbistradefinance.com,SG,trade-finance,300,opportunity,,false,D-2207,2026-08-19,Mei,2026-10-01
+HS-1013,Tom,Becker,tom.becker@kestrelsc.com,Head of Logistics Procurement,https://www.linkedin.com/in/tombecker-logistics,Kestrel Supply Chain,kestrelsc.com,DE,shipper,9000,lead,,false,,,Leo,2026-09-21
+HS-1014,Lukas,Weber,lukas.weber@kestrelsc.com,Supply Chain Analyst,,Kestrel Supply Chain,kestrelsc.com,DE,shipper,9000,salesqualifiedlead,QL (imported 2026-08),false,,,Leo,2026-08-12
+HS-1015,Felix,Wagner,felix.wagner@halden-fwd.de,Managing Director,,Halden Forwarding GmbH,halden-fwd.de,DE,freight-forwarder,150,opportunity,,false,D-2231,2026-10-07,Leo,2026-10-07
+HS-1016,Priya,Nair,priya.nair@cedargroveretail.com,Director of Transportation,,Cedar Grove Retail,cedargroveretail.com,US,shipper,20000,lead,,false,,,Sam,2026-09-15
+HS-1017,Noam,Levi,noam@ashdodbay.co.il,COO,,Ashdod Bay Shipping,ashdodbay.co.il,IL,freight-forwarder,90,lead,,false,,,Noa,2026-09-28
+HS-1018,Kai,Brenner,kai@quayline.io,Head of Partnerships,,Quayline Software,quayline.io,DE,software-vendor,60,other,competitor,false,,,,2026-07-03
+HS-1019,Hannah,Ross,hannah@vantorcapital.com,Partner,,Vantor Capital,vantorcapital.com,US,investor,25,other,,false,,,,2026-06-11

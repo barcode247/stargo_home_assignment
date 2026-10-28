@@ -1,0 +1,1 @@
+"""Stargo GTM signal pipeline."""

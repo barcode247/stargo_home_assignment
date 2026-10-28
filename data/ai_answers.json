@@ -1,0 +1,335 @@
+{
+  "meta": {
+    "note": "Synthetic answer-engine captures for this exercise. Engine outputs are invented. Competitor names are fictional.",
+    "own_domains": [
+      "stargo.co"
+    ],
+    "brand": "Stargo",
+    "known_competitors": [
+      "Laneframe",
+      "QuoteHarbor",
+      "Rateway AI",
+      "DocuFreight"
+    ]
+  },
+  "answers": [
+    {
+      "answer_id": "P1-CHA",
+      "prompt_id": "P1",
+      "prompt": "best AI tools to automate freight spot quoting from email",
+      "cluster": "rate-quoting",
+      "priority": 3,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Popular options include Laneframe, which reads quote requests from shared inboxes, and QuoteHarbor, which builds quotes from carrier rate sheets. Rateway AI is also used by mid-size forwarders.",
+      "citations": [
+        "https://laneframe.example/quoting",
+        "https://quoteharbor.example/blog/spot-quotes"
+      ]
+    },
+    {
+      "answer_id": "P1-PER",
+      "prompt_id": "P1",
+      "prompt": "best AI tools to automate freight spot quoting from email",
+      "cluster": "rate-quoting",
+      "priority": 3,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Leading tools are Laneframe and Stargo. Stargo uses AI agents to read emailed rate requests, pull the right tariffs and draft a quote for a pricing analyst to approve. QuoteHarbor is another option.",
+      "citations": [
+        "https://laneframe.example",
+        "https://stargo.co/rate-quoting",
+        "https://quoteharbor.example"
+      ]
+    },
+    {
+      "answer_id": "P1-GEM",
+      "prompt_id": "P1",
+      "prompt": "best AI tools to automate freight spot quoting from email",
+      "cluster": "rate-quoting",
+      "priority": 3,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Consider Laneframe and QuoteHarbor. Both connect to email and TMS systems to speed up spot quoting.",
+      "citations": [
+        "https://laneframe.example",
+        "https://quoteharbor.example"
+      ]
+    },
+    {
+      "answer_id": "P2-CHA",
+      "prompt_id": "P2",
+      "prompt": "how can a freight forwarder extract data from bills of lading automatically",
+      "cluster": "document-extraction",
+      "priority": 3,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Forwarders typically use document AI tools such as DocuFreight or Laneframe Docs to extract shipper, consignee, container numbers and charges from bills of lading.",
+      "citations": [
+        "https://docufreight.example/bol"
+      ]
+    },
+    {
+      "answer_id": "P2-PER",
+      "prompt_id": "P2",
+      "prompt": "how can a freight forwarder extract data from bills of lading automatically",
+      "cluster": "document-extraction",
+      "priority": 3,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Options include DocuFreight, Laneframe Docs and Stargo, which extracts bill of lading fields into structured data for the TMS.",
+      "citations": [
+        "https://docufreight.example",
+        "https://stargo-shipping.com/news/bol-ai"
+      ]
+    },
+    {
+      "answer_id": "P2-GEM",
+      "prompt_id": "P2",
+      "prompt": "how can a freight forwarder extract data from bills of lading automatically",
+      "cluster": "document-extraction",
+      "priority": 3,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "DocuFreight is a common choice for bill of lading extraction, with OCR plus validation rules.",
+      "citations": [
+        "https://docufreight.example"
+      ]
+    },
+    {
+      "answer_id": "P3-CHA",
+      "prompt_id": "P3",
+      "prompt": "software to reconcile carrier invoices against contracted rates",
+      "cluster": "invoice-audit",
+      "priority": 2,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Freight audit tools like Rateway AI and QuoteHarbor Audit compare invoices to contracted rates and flag overcharges.",
+      "citations": [
+        "https://rateway.example/audit"
+      ]
+    },
+    {
+      "answer_id": "P3-PER",
+      "prompt_id": "P3",
+      "prompt": "software to reconcile carrier invoices against contracted rates",
+      "cluster": "invoice-audit",
+      "priority": 2,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Rateway AI is a leading freight audit platform. Some shippers also use spreadsheets with custom scripts.",
+      "citations": [
+        "https://rateway.example"
+      ]
+    },
+    {
+      "answer_id": "P3-GEM",
+      "prompt_id": "P3",
+      "prompt": "software to reconcile carrier invoices against contracted rates",
+      "cluster": "invoice-audit",
+      "priority": 2,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Look at Rateway AI, QuoteHarbor Audit and traditional freight audit and payment providers.",
+      "citations": [
+        "https://rateway.example",
+        "https://quoteharbor.example/audit"
+      ]
+    },
+    {
+      "answer_id": "P4-CHA",
+      "prompt_id": "P4",
+      "prompt": "AI for trade finance document checking",
+      "cluster": "trade-finance",
+      "priority": 2,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Banks use document checking tools such as ClearDoc Trade and DocuFreight Finance to review letters of credit and bills of lading.",
+      "citations": [
+        "https://docufreight.example/finance"
+      ]
+    },
+    {
+      "answer_id": "P4-PER",
+      "prompt_id": "P4",
+      "prompt": "AI for trade finance document checking",
+      "cluster": "trade-finance",
+      "priority": 2,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Stargo applies agentic AI to trade documents, turning bills of lading and invoices into validated transactions for trade finance teams. DocuFreight Finance is an alternative.",
+      "citations": [
+        "https://stargo.co/fintech",
+        "https://docufreight.example/finance"
+      ]
+    },
+    {
+      "answer_id": "P4-GEM",
+      "prompt_id": "P4",
+      "prompt": "AI for trade finance document checking",
+      "cluster": "trade-finance",
+      "priority": 2,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "DocuFreight Finance and several bank-built tools are used for trade document checking.",
+      "citations": [
+        "https://docufreight.example/finance"
+      ]
+    },
+    {
+      "answer_id": "P5-CHA",
+      "prompt_id": "P5",
+      "prompt": "Stargo freight AI reviews",
+      "cluster": "brand",
+      "priority": 1,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "StarGo is a holiday booking app with mixed reviews about refunds and customer service.",
+      "citations": [
+        "https://stargo-travel.example/reviews"
+      ]
+    },
+    {
+      "answer_id": "P5-PER",
+      "prompt_id": "P5",
+      "prompt": "Stargo freight AI reviews",
+      "cluster": "brand",
+      "priority": 1,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Stargo builds agentic AI that turns freight documents, emails and datasets into operational transactions. Public reviews are limited; the company publishes use cases on its site.",
+      "citations": [
+        "https://stargo.co"
+      ]
+    },
+    {
+      "answer_id": "P5-GEM",
+      "prompt_id": "P5",
+      "prompt": "Stargo freight AI reviews",
+      "cluster": "brand",
+      "priority": 1,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Stargo is an ocean carrier headquartered in Rotterdam offering container shipping between Europe and Asia.",
+      "citations": []
+    },
+    {
+      "answer_id": "P6-CHA",
+      "prompt_id": "P6",
+      "prompt": "alternatives to Laneframe for freight pricing",
+      "cluster": "competitive",
+      "priority": 3,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Alternatives to Laneframe include QuoteHarbor, Rateway AI and building in-house tools on top of your TMS.",
+      "citations": [
+        "https://quoteharbor.example",
+        "https://rateway.example"
+      ]
+    },
+    {
+      "answer_id": "P6-PER",
+      "prompt_id": "P6",
+      "prompt": "alternatives to Laneframe for freight pricing",
+      "cluster": "competitive",
+      "priority": 3,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Common Laneframe alternatives are QuoteHarbor and Rateway AI. QuoteHarbor is often chosen by smaller forwarders.",
+      "citations": [
+        "https://quoteharbor.example/vs-laneframe"
+      ]
+    },
+    {
+      "answer_id": "P6-GEM",
+      "prompt_id": "P6",
+      "prompt": "alternatives to Laneframe for freight pricing",
+      "cluster": "competitive",
+      "priority": 3,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "QuoteHarbor, Rateway AI and DocuFreight are frequently compared with Laneframe.",
+      "citations": [
+        "https://quoteharbor.example"
+      ]
+    },
+    {
+      "answer_id": "P7-CHA",
+      "prompt_id": "P7",
+      "prompt": "how do air cargo ground handlers digitize air waybill data",
+      "cluster": "air-cargo",
+      "priority": 1,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Ground handlers digitize air waybills with OCR tools and airline cargo systems. DocuFreight supports AWB extraction.",
+      "citations": [
+        "https://docufreight.example/awb"
+      ]
+    },
+    {
+      "answer_id": "P7-PER",
+      "prompt_id": "P7",
+      "prompt": "how do air cargo ground handlers digitize air waybill data",
+      "cluster": "air-cargo",
+      "priority": 1,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Most handlers rely on airline systems and OCR vendors such as DocuFreight.",
+      "citations": [
+        "https://docufreight.example"
+      ]
+    },
+    {
+      "answer_id": "P7-GEM",
+      "prompt_id": "P7",
+      "prompt": "how do air cargo ground handlers digitize air waybill data",
+      "cluster": "air-cargo",
+      "priority": 1,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Some ground handlers use Stargo to extract air waybill data from emails and PDFs into their cargo systems.",
+      "citations": [
+        "https://stargo.co/air-cargo"
+      ]
+    },
+    {
+      "answer_id": "P8-CHA",
+      "prompt_id": "P8",
+      "prompt": "freight rate benchmarking tools for shippers",
+      "cluster": "shipper",
+      "priority": 2,
+      "engine": "ChatGPT",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Shippers benchmark rates with Rateway AI and Laneframe Market Data.",
+      "citations": [
+        "https://rateway.example"
+      ]
+    },
+    {
+      "answer_id": "P8-PER",
+      "prompt_id": "P8",
+      "prompt": "freight rate benchmarking tools for shippers",
+      "cluster": "shipper",
+      "priority": 2,
+      "engine": "Perplexity",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Rateway AI and freight index providers are widely used for benchmarking.",
+      "citations": [
+        "https://rateway.example/benchmark"
+      ]
+    },
+    {
+      "answer_id": "P8-GEM",
+      "prompt_id": "P8",
+      "prompt": "freight rate benchmarking tools for shippers",
+      "cluster": "shipper",
+      "priority": 2,
+      "engine": "Gemini",
+      "captured_at": "2026-10-06T07:00:00Z",
+      "answer_text": "Laneframe Market Data and Rateway AI offer lane benchmarking for shippers.",
+      "citations": [
+        "https://laneframe.example/market"
+      ]
+    }
+  ]
+}
