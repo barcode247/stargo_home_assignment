@@ -11,9 +11,26 @@ export default function LeadQueue() {
   const [sort, setSort] = useState<Sort>("received");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => {
-    api.leads().then(setRows).catch(setError);
-  }, []);
+  const [retrying, setRetrying] = useState(false);
+  const [retryResult, setRetryResult] = useState<string | null>(null);
+
+  const load = () => { api.leads().then(setRows).catch(setError); };
+  useEffect(load, []);
+
+  const failedCount = rows?.filter((r) => r.analysis_failed).length ?? 0;
+  const retryFailed = async () => {
+    setRetrying(true);
+    setError(null);
+    try {
+      const r = await api.reanalyseFailed();
+      setRetryResult(`Retried ${r.retried} message(s); ${r.still_failed} still failing.`);
+      load();
+    } catch (e) {
+      setError(e);
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const visible = useMemo(() => {
     if (!rows) return [];
@@ -48,6 +65,19 @@ export default function LeadQueue() {
         </div>
       </div>
       <ErrorBox error={error} />
+      {failedCount > 0 && (
+        <div className="notice row" style={{ justifyContent: "space-between" }}>
+          <span>
+            {failedCount} lead(s) have a failed analysis and wait in <strong>needs review</strong>.
+            Fix the model settings (or add a key, for languages the rules cannot read), then
+            retry.
+          </span>
+          <button disabled={retrying} onClick={retryFailed}>
+            {retrying ? "Retrying…" : "Retry failed analyses"}
+          </button>
+        </div>
+      )}
+      {retryResult && <div className="success small">{retryResult}</div>}
       {!rows && !error && <p className="muted">Loading…</p>}
       {rows && (
         <table className="cards">

@@ -31,6 +31,7 @@ from stargo.ingest.validation import (
 )
 from stargo.kpi.pack import KpiInputs, KpiPack, compute_kpi_pack
 from stargo.kpi.window import ReportingWindow
+from stargo.llm.client import LlmError
 from stargo.rules.qualify import LeadContext, commercial_exclusion, qualify
 from stargo.storage.db import Store
 
@@ -111,6 +112,9 @@ class Pipeline:
         except RecordRejected as exc:
             self._reject(message_id, "inbound", exc.reasons)
             return SubmitResult(False, None, None, exc.reasons)
+        if conflict := self._identity_conflict(message):
+            self._reject(message_id, "inbound", [conflict])
+            return SubmitResult(False, None, None, [conflict])
         self.store.put_message(message)
         snapshot = self._snapshot()
         person = snapshot.index.person_for_message(message.id)
@@ -119,6 +123,28 @@ class Pipeline:
         if requalify:
             self.requalify()
         return SubmitResult(True, message.id, person.person_id, [])
+
+    def _identity_conflict(self, message: InboundMessage) -> str | None:
+        """A message whose email and LinkedIn URL already belong to two different established
+        people (each with a CRM record or a sales decision) would merge them. Refuse it."""
+        keys = message.identity_keys
+        if len(keys) < 2:
+            return None
+        snapshot = self._snapshot()
+        people = {p.person_id: p for k in keys if (p := snapshot.index.person_for_key(k))}
+        if len(people) < 2:
+            return None
+        decided = {self._person_of(d.contact_key, snapshot) for d in self.store.decisions()}
+        established = [p for p in people.values() if p.crm or p.person_id in decided]
+        if len(established) >= 2:
+            return ("the email and the LinkedIn URL belong to two different people on record; "
+                    "submit the message with only one of them")
+        return None
+
+    @staticmethod
+    def _person_of(key: str, snapshot: Snapshot) -> str | None:
+        person = snapshot.index.person_for_key(key)
+        return person.person_id if person else None
 
     def record_decision(self, person_id: str, decision: str, *, decided_by: str | None,
                         decided_at: datetime | str | None = None,
@@ -151,6 +177,19 @@ class Pipeline:
                 self.store.put_extraction(self._analyse(message, ctx.person.crm))
         self.requalify()
         return self.qualification(person_id)
+
+    def reanalyse_failed(self) -> dict[str, int]:
+        """Retry every failed analysis, e.g. after fixing a bad key. Returns before/after counts."""
+        snapshot = self._snapshot()
+        results = self.store.extractions()
+        failed = [m for m in snapshot.messages.values()
+                  if m.id not in results or results[m.id].status == "failed"]
+        for message in failed:
+            person = snapshot.index.person_for_message(message.id)
+            self.store.put_extraction(self._analyse(message, person.crm))
+        self.requalify()
+        still = sum(1 for r in self.store.extractions().values() if r.status == "failed")
+        return {"retried": len(failed), "still_failed": still}
 
     # ---------- drafts (never sent) ----------
 
@@ -208,6 +247,9 @@ class Pipeline:
                 "band": q.score.band if q.score else None,
                 "status": q.status, "owner": q.owner,
                 "flagged": bool(q.review_flags),
+                "analysis_failed": bool(ctx) and any(
+                    m.id not in ctx.results or ctx.results[m.id].status == "failed"
+                    for m in ctx.messages),
             })
         rows.sort(key=lambda r: r["received_at"] or "", reverse=True)
         return rows
@@ -241,6 +283,9 @@ class Pipeline:
             error = f"invalid extractor output: {exc}"
         except TimeoutError:
             error = "extractor timed out"
+        except LlmError as exc:
+            # LlmError messages are written by our client and never contain prompt text.
+            error = f"model call failed: {exc}"
         except Exception as exc:  # noqa: BLE001 - any model failure must degrade to review
             error = f"extractor error: {type(exc).__name__}"
         else:

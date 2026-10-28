@@ -35,7 +35,19 @@ INJECTION_PATTERNS: dict[str, re.Pattern[str]] = {
 }
 
 
+# Spacing, punctuation or zero-width tricks ("I g n o r e", "ig-nore") are caught by matching
+# key phrases against the text with everything but letters removed.
+SQUASHED_PATTERNS = re.compile(
+    r"ignore(all)?(the)?(previous|prior|above|earlier|your)(rules|instructions|prompts?)"
+    r"|disregard(all)?(previous|prior|your)(rules|instructions)|systemprompt"
+    r"|(set|mark)(the)?(status|lead)(as|to)?(ql|qualified)|youarenow",
+    re.IGNORECASE)
+
+
 def detect_injection(*texts: str | None) -> list[str]:
     """Names of the patterns that matched, empty when the text looks clean."""
     joined = "\n".join(t for t in texts if t)
-    return [name for name, pattern in INJECTION_PATTERNS.items() if pattern.search(joined)]
+    hits = [name for name, pattern in INJECTION_PATTERNS.items() if pattern.search(joined)]
+    if not hits and SQUASHED_PATTERNS.search(re.sub(r"[^a-zA-Z]", "", joined)):
+        hits.append("obfuscated_instruction")
+    return hits

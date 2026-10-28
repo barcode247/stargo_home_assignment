@@ -151,7 +151,36 @@ def test_client_spaces_calls_for_rate_limits(fake_server):
     started = time.monotonic()
     client.complete_json("s", "u")
     client.complete_json("s", "u")
-    assert time.monotonic() - started >= 0.4
+    # Windows timers can wake a few milliseconds early; the point is that the calls were spaced.
+    assert time.monotonic() - started >= 0.35
+
+
+def test_circuit_breaker_fails_fast_after_repeated_failures(fake_server):
+    _Handler.mode = "slow"  # each call would wait for the full timeout
+    port = fake_server.server_address[1]
+    client = ChatClient(LlmSettings("test", f"http://127.0.0.1:{port}", "m", None, 0.3))
+    for _ in range(client.breaker_threshold):
+        with pytest.raises(LlmTimeout):
+            client.complete_json("s", "u")
+    started = time.monotonic()
+    with pytest.raises(LlmError, match="paused"):
+        client.complete_json("s", "u")
+    assert time.monotonic() - started < 0.1  # no network wait while the breaker is open
+
+
+def test_retry_all_failed_analyses_after_the_model_recovers(make_pipeline):
+    body = "We quote 400 spot rate requests a week by hand. Can we see a demo?"
+    fake = FakeClient(exc=LlmError("HTTP 400"))
+    pipeline = make_pipeline(extractor=LlmExtractor(fake))  # seed fails: model is down
+    assert all(r.status == "failed" for r in pipeline.store.extractions().values())
+    assert pipeline.qualification("HS-1001").status == "needs review"
+    # Key fixed. The canned reply quotes nothing, so it is valid for every seed message.
+    reply = json.loads(good_reply(body))
+    reply["evidence"] = []
+    fake.exc, fake.reply = None, json.dumps(reply)
+    counts = pipeline.reanalyse_failed()
+    assert counts == {"retried": 20, "still_failed": 0}
+    assert pipeline.qualification("HS-1001").status != "needs review"
 
 
 def test_client_unreachable_host():

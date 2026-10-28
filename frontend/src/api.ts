@@ -14,6 +14,7 @@ export interface QueueRow {
   status: Status;
   owner: string | null;
   flagged: boolean;
+  analysis_failed: boolean;
 }
 
 export interface ConditionCheck {
@@ -184,6 +185,8 @@ export const api = {
                                note: string | null }) =>
     post(`/api/leads/${encodeURIComponent(id)}/decisions`, data),
   reanalyse: (id: string) => post(`/api/leads/${encodeURIComponent(id)}/reanalyse`),
+  reanalyseFailed: () =>
+    post<{ retried: number; still_failed: number }>("/api/reanalyse-failed"),
   draft: (id: string) => post<{ draft: Draft }>(`/api/leads/${encodeURIComponent(id)}/draft`),
   approve: (id: string, approvedBy: string) =>
     post<{ draft: Draft; sent: false }>(`/api/leads/${encodeURIComponent(id)}/draft/approve`,

@@ -84,9 +84,17 @@ under 640 px, which keeps the app readable at 390 px.
 
 Any extractor failure (exception, timeout, unreachable host, bad key, bad JSON, schema miss,
 invented quote, unsupported language in rules mode) stores a `failed` result and the lead
-shows as `needs review`, keeping the owner its region or account would get. "Retry analysis"
-in the lead view reruns it. A failed draft or brief falls back to the template with a
-visible note.
+shows as `needs review`, keeping the owner its region or account would get, with the reason
+on the lead ("model call failed: model endpoint returned HTTP 400"). "Retry analysis" in the
+lead view reruns one lead; "Retry failed analyses" on the queue reruns all of them after the
+settings are fixed. A failed draft or brief falls back to the template with a visible note.
+
+A circuit breaker stops a dead or hanging model from stalling the app: after 3 failures in a
+row the client stops calling for 60 seconds and fails at once. QA results on an empty database
+(startup time / time to analyse a pasted message, every lead ending in `needs review`):
+invalid key 4 s / 0.2 s, unreachable host 7 s / 0.2 s, HTML instead of JSON 2 s / 0.2 s,
+prose instead of JSON 2 s / 0.2 s, model that hangs 32 s / 0.2 s (three 10-second timeouts,
+then the breaker opens).
 
 Prompt-injection defences, in order: the detector in code flags the lead for review; the
 message is passed to the model fenced as data with instructions to ignore orders in it; the
@@ -133,6 +141,10 @@ queue and never changes the status.
 
 ## Assumptions
 
+- A message whose email and LinkedIn URL belong to two different established people (each with
+  a CRM record or a sales decision) is rejected with a reason rather than merging them. Found
+  in QA: one such paste merged Anouk and Pieter and cut the week's QLs from 6 to 4. A message
+  that links a LinkedIn-only lead to a known email is still merged, as the standard intends.
 - Customer and competitor status are account-level (by normalized domain); open deals are
   contact-level, as in the CRM export.
 - Deal dates are day-precision: a deal created the same Israel-time day as the first inbound or

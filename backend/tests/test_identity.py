@@ -40,5 +40,31 @@ def test_new_message_by_linkedin_joins_existing_person(seeded):
     assert result.person_id == "HS-1001"
 
 
+def test_message_linking_two_established_people_is_rejected(seeded):
+    # Anouk's email with Pieter's LinkedIn would merge two real contacts and corrupt the KPIs.
+    before = len(seeded.store.messages())
+    result = seeded.submit_inbound(inbound(
+        from_email="anouk.devries@nordhavenfreight.com",
+        linkedin_url="https://www.linkedin.com/in/pieterclaes-bcl", body="Demo please"))
+    assert not result.accepted
+    assert "two different people" in result.reasons[0]
+    assert len(seeded.store.messages()) == before
+    assert seeded.qualification("HS-1001").status == "QL"
+    assert seeded.qualification("HS-1004").status == "QL"
+
+
+def test_linkedin_only_lead_is_linked_when_they_email_from_a_known_address(seeded):
+    first = seeded.submit_inbound(inbound(
+        from_email=None, linkedin_url="linkedin.com/in/erik-lund-nf",
+        channel="linkedin_dm", body="Thanks for connecting."))
+    second = seeded.submit_inbound(inbound(
+        from_email="erik.lund@nordhavenfreight.com", linkedin_url="linkedin.com/in/erik-lund-nf",
+        received_at="2026-10-07T10:00:00+03:00",
+        body="Following up from LinkedIn: can we book a demo for rate quoting?"))
+    assert second.accepted and first.accepted
+    assert second.person_id == "HS-1003"
+    assert seeded.qualification("HS-1003").message_ids[0] == first.message_id
+
+
 def test_qualified_person_counted_once_across_messages(quals):
     assert quals["HS-1001"].message_ids == ["IN-001", "IN-021"]

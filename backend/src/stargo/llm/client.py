@@ -84,11 +84,35 @@ def load_settings(env: dict[str, str] | None = None) -> LlmSettings | None:
 
 class ChatClient:
     max_retries = 2
+    # Circuit breaker: after this many failures in a row, stop calling the model for a while
+    # and fail at once, so a dead or slow endpoint costs seconds, not a timeout per message.
+    breaker_threshold = 3
+    breaker_cooldown_s = 60.0
 
     def __init__(self, settings: LlmSettings) -> None:
         self.settings = settings
         self._lock = threading.Lock()
         self._last_call = 0.0
+        self._failures = 0
+        self._open_until = 0.0
+        self._last_error = ""
+
+    def complete_json(self, system: str, user: str) -> str:
+        """Return the model's raw text. Callers validate it; nothing here trusts it."""
+        if time.monotonic() < self._open_until:
+            raise LlmError(f"model calls paused after repeated failures; last: {self._last_error}")
+        try:
+            content = self._call(system, user)
+        except LlmError as exc:
+            self._last_error = str(exc)
+            self._failures += 1
+            if self._failures >= self.breaker_threshold:
+                self._open_until = time.monotonic() + self.breaker_cooldown_s
+                log.warning("llm %s failed %d times in a row; pausing calls for %.0fs",
+                            self.settings.label, self._failures, self.breaker_cooldown_s)
+            raise
+        self._failures = 0
+        return content
 
     def _wait_for_slot(self) -> None:
         """Space calls at least min_interval_s apart; the wait is not counted as model time."""
@@ -98,8 +122,7 @@ class ChatClient:
                 time.sleep(wait)
             self._last_call = time.monotonic()
 
-    def complete_json(self, system: str, user: str) -> str:
-        """Return the model's raw text. Callers validate it; nothing here trusts it."""
+    def _call(self, system: str, user: str) -> str:
         payload = {
             "model": self.settings.model,
             "temperature": 0,

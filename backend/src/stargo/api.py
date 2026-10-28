@@ -117,6 +117,11 @@ def create_app(pipeline: Pipeline, *, data_dir: Path = DATA_DIR,
         with lock:
             return {"qualification": pipeline.reanalyse(person_id)}
 
+    @app.post("/api/reanalyse-failed")
+    def reanalyse_failed() -> dict[str, int]:
+        with lock:
+            return pipeline.reanalyse_failed()
+
     @app.post("/api/leads/{person_id}/draft")
     def draft(person_id: str) -> dict[str, Any]:
         with lock:
